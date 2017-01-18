@@ -2,6 +2,7 @@ const amqp = require('amqplib/callback_api');
 const bodyParser = require('body-parser')
 const rpc = require('./rpc');
 const dbWrite = require('./dbWrite')
+const winston = require('winston');
 
 const app = require('express')();
 const PORT = 3000;
@@ -9,7 +10,7 @@ app.use(bodyParser.json());
 
 amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
   if (err) {
-    return console.log('ERROR', err);
+    return winston.error(err)
   }
 
   /* 
