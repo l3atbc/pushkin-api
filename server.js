@@ -84,6 +84,44 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       }).catch(next)
       // create a channel
   });
+  app.get('/languages', (req, res, next) => {
+      var rpcInput = {
+        method: 'allLanguages'
+      }
+      const channelName = 'db_rpc_worker';
+      return rpc(conn, channelName, rpcInput).then(data => {
+        res.json(data);
+      }).catch(next)
+
+  })
+  app.get('/users/:id', (req, res, next) => {
+      var rpcInput = {
+        method: 'findUser',
+        arguments: [
+          req.params.id,
+          ['userLanguages.languages']
+
+        ]
+      }
+      const channelName = 'db_rpc_worker';
+      return rpc(conn, channelName, rpcInput).then(data => {
+        res.json(data);
+      }).catch(next)
+  })
+  app.post('/comments', (req, res, next) => {
+    var rpcInput = {
+      method: 'setUserLanguages',
+      arguments: [req.body.userId, { 
+        nativeLanguages: req.body.nativeLanguages,
+        primaryLanguages: req.body.primaryLanguages,
+      }]
+    }
+    const channelName = 'db_rpc_worker';
+    return rpc(conn, channelName, rpcInput).then(data => {
+        res.json(data);
+      }).catch(next)
+
+  })
 });
 
 app.listen(PORT, function() {
