@@ -67,6 +67,18 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       res.json(data);
     })
   })
+  app.put('/users/:id', (req, res, next) => {
+    var rpcInput = {
+      method: 'updateUser',
+      arguments:[req.params.id, req.body]
+    }
+    console.log('HERE"')
+    const channelName = 'db_rpc_worker';
+    return rpc(conn, channelName, rpcInput).then(data => {
+      res.json(data)
+    }).catch(next)
+
+  })
   app.get('/trials', (req, res, next) => {
       var rpcInput = {
         method: 'allTrials',
