@@ -3,10 +3,12 @@ const bodyParser = require('body-parser')
 const rpc = require('./rpc');
 const dbWrite = require('./dbWrite')
 const winston = require('winston');
+const cors = require('cors');
 
 const app = require('express')();
 const PORT = 3000;
 app.use(bodyParser.json());
+app.use(cors());
 
 amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
   if (err) {
@@ -107,6 +109,28 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       return rpc(conn, channelName, rpcInput).then(data => {
         res.json(data);
       }).catch(next)
+  })
+  app.get('/results/:userId', (req, res, next) => {
+      var rpcInput = {
+        method: 'getResults',
+        arguments: [
+          req.params.userId,
+        ]
+      }
+      const channelName = 'db_rpc_worker';
+      return rpc(conn, channelName, rpcInput).then(data => {
+        res.json({ results: data });
+      }).catch(next)
+
+  })
+  app.get('/users', (req, res, next) => {
+    var rpcInput = {
+      method: 'allUsers',
+    }
+    const channelName = 'db_rpc_worker';
+    return rpc(conn, channelName, rpcInput).then(data => {
+      res.json(data);
+    }).catch(next)
   })
   app.post('/comments', (req, res, next) => {
     var rpcInput = {
