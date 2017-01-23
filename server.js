@@ -72,7 +72,6 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       method: 'updateUser',
       arguments:[req.params.id, req.body]
     }
-    console.log('HERE"')
     const channelName = 'db_rpc_worker';
     return rpc(conn, channelName, rpcInput).then(data => {
       res.json(data)
