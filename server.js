@@ -156,10 +156,10 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
         var rpc2 = {
           method: 'updateUser',
           arguments: [req.body.userId, {
-            countriesOfResidence: req.body.countryOfResidence.join(','),
-            englishYears: req.body.englishYears,
-            householdEnglish: req.body.householdEnglish,
-            learnAge: req.body.learnAge,
+            countriesOfResidence: req.body.countryOfResidence ? req.body.countryOfResidencejoin(',') : null,
+            englishYears: req.body.englishYears || null,
+            householdEnglish: req.body.householdEnglish || null,
+            learnAge: req.body.learnAge || null,
           }
           ],
         }
