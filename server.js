@@ -153,7 +153,19 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     }
     const channelName = 'db_rpc_worker';
     return rpc(conn, channelName, rpcInput).then(data => {
-        res.json(data);
+        var rpc2 = {
+          method: 'updateUser',
+          arguments: [req.body.userId, {
+            countriesOfResidence: req.body.countryOfResidence.join(','),
+            englishYears: req.body.englishYears,
+            householdEnglish: req.body.householdEnglish,
+            learnAge: req.body.learnAge,
+          }
+          ],
+        }
+        return rpc(conn, channelName, rpc2).then((data2) => {
+          return res.json(Object.assign({}, data, data2));
+        });
       }).catch(next)
 
   })
