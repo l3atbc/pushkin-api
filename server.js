@@ -62,7 +62,15 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     }
     return dbWrite(conn, 'db_write', rpcInput)
     .then(() => {
-      return rpc(conn, 'task_queue', { userId: user.id, questionId, choiceId });
+      var workerInput = {
+        method: 'getQuestion',
+        payload: {
+          userId: user.id, 
+          questionId, 
+          choiceId
+        } 
+      }
+      return rpc(conn, 'task_queue', workerInput);
     }).then(data => {
       res.json(data);
     })
@@ -122,17 +130,16 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       }).catch(next)
   })
   app.get('/results/:userId', (req, res, next) => {
-      var rpcInput = {
+      var workerInput = {
         method: 'getResults',
-        arguments: [
-          req.params.userId,
-        ]
+        payload: {
+          userId: req.params.userId, 
+        } 
       }
-      const channelName = 'db_rpc_worker';
-      return rpc(conn, channelName, rpcInput).then(data => {
+      return rpc(conn, 'task_queue', workerInput)
+      .then(data => {
         res.json({ results: data });
-      }).catch(next)
-
+      })
   })
   app.get('/users', (req, res, next) => {
     var rpcInput = {
