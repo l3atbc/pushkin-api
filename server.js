@@ -62,7 +62,7 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     }
     return dbWrite(conn, 'db_write', rpcInput)
     .then(() => {
-      return rpc(conn, 'task_queue', { userId: user.id, questionId });
+      return rpc(conn, 'task_queue', { userId: user.id, questionId, choiceId });
     }).then(data => {
       res.json(data);
     })
