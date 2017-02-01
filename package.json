@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "amqplib": "^0.5.1",
+    "basic-auth": "^1.1.0",
     "body-parser": "^1.15.2",
     "cors": "^2.8.1",
     "express": "^4.14.0",

@@ -7,6 +7,9 @@ const cors = require('cors');
 
 const app = require('express')();
 const PORT = 3000;
+
+const basicAuth = require('basic-auth');
+
 app.use(bodyParser.json());
 app.use(cors());
 
@@ -14,7 +17,6 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
   if (err) {
     return winston.error(err)
   }
-
   /* 
     Create and close a channel within the space of an http request
     all channels are created on the same persistent rabbit mq connection
@@ -48,7 +50,6 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     })
     .catch(next)
   })
-
   app.post('/response', (req, res, next) => {
     const { user, choiceId, questionId } = req.body;
     // save in db
@@ -97,6 +98,30 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       }).catch(next)
       // create a channel
   });
+  app.get('/admincsv', (req, res, next) => {
+    const user = basicAuth(req);
+    console.log("user", user)
+    if (!user || !user.name || !user.pass) {
+    res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+    res.sendStatus(401);
+    return;
+  }
+  if (user.name === 'pushkinl3' && user.pass === 'pushkinl3') {
+    const rpcInput = {
+      method: 'getResponseCsv',
+    }
+    const channelName = 'db_rpc_worker';
+    return rpc(conn, channelName, rpcInput)
+    .then(data => {
+      res.send(data)
+    })
+    .catch(next)
+  } else {
+    res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+    res.sendStatus(401);
+    return;
+  }
+  })
   app.get('/languages', (req, res, next) => {
       var rpcInput = {
         method: 'allLanguages'
