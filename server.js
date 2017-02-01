@@ -4,7 +4,7 @@ const rpc = require('./rpc');
 const dbWrite = require('./dbWrite')
 const winston = require('winston');
 const cors = require('cors');
-
+const fs = require('fs');
 const app = require('express')();
 const PORT = 3000;
 
@@ -99,16 +99,14 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       // create a channel
   });
   app.get('/admincsv', (req, res, next) => {
-    const users = [
-      {
-        userName: 'pushkinl3',
-        passWord: 'pushkinl3',
-      },
-      {
-        userName: 'kan',
-        passWord: 'abc123',
+    const output = fs.readFileSync('./admin.txt', 'utf-8')
+    const outputArray = output.split('\n');
+    const users = outputArray.map((currentEl) => {
+      return {
+        userName: currentEl.split(':')[0],
+        passWord: currentEl.split(':')[1],
       }
-    ]
+    })
     const user = basicAuth(req);
     let flag;
     if (!user || !user.name || !user.pass) {
