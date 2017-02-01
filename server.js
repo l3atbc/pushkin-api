@@ -99,28 +99,47 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       // create a channel
   });
   app.get('/admincsv', (req, res, next) => {
+    const users = [
+      {
+        userName: 'pushkinl3',
+        passWord: 'pushkinl3',
+      },
+      {
+        userName: 'kan',
+        passWord: 'abc123',
+      }
+    ]
     const user = basicAuth(req);
-    console.log("user", user)
+    let flag;
     if (!user || !user.name || !user.pass) {
     res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
     res.sendStatus(401);
     return;
   }
-  if (user.name === 'pushkinl3' && user.pass === 'pushkinl3') {
-    const rpcInput = {
-      method: 'getResponseCsv',
+  for(var i = 0; i < users.length; i++) {
+    const admin = users[i];
+    if(admin.userName === user.name && admin.passWord === user.pass) {
+      flag = true
+      break;
+    } else {
+        flag = false
+      }
     }
-    const channelName = 'db_rpc_worker';
-    return rpc(conn, channelName, rpcInput)
-    .then(data => {
-      res.send(data)
-    })
-    .catch(next)
-  } else {
-    res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
-    res.sendStatus(401);
-    return;
-  }
+    if(flag) {
+      const rpcInput = {
+          method: 'getResponseCsv',
+      }
+      const channelName = 'db_rpc_worker';
+      return rpc(conn, channelName, rpcInput)
+      .then(data => {
+        res.send(data)
+      })
+      .catch(next)
+    } else {
+      res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+      res.sendStatus(401);
+      return;
+    }
   })
   app.get('/languages', (req, res, next) => {
       var rpcInput = {
