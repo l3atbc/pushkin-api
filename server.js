@@ -35,7 +35,7 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     })
     .catch(next)
   })
-  app.get('/responses', (req, res, next) => {
+  app.get('/api/responses', (req, res, next) => {
     const { user, choiceId, questionId } = req.body;
     var rpcInput = {
       method: 'allResponses',
@@ -49,7 +49,7 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     .catch(next)
   })
 
-  app.post('/response', (req, res, next) => {
+  app.post('/api/response', (req, res, next) => {
     const { user, choiceId, questionId } = req.body;
     // save in db
     // ask for next
@@ -75,7 +75,7 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       res.json(data);
     })
   })
-  app.put('/users/:id', (req, res, next) => {
+  app.put('/api/users/:id', (req, res, next) => {
     var rpcInput = {
       method: 'updateUser',
       arguments:[req.params.id, req.body]
@@ -86,7 +86,7 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     }).catch(next)
 
   })
-  app.get('/trials', (req, res, next) => {
+  app.get('/api/trials', (req, res, next) => {
       var rpcInput = {
         method: 'allTrials',
       }
@@ -95,7 +95,7 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
         res.json(data)
       }).catch(next)
   })
-  app.get('/initialQuestions', (req, res, next) => {
+  app.get('/api/initialQuestions', (req, res, next) => {
       var rpcInput = {
         method: 'getInitialQuestions',
       }
@@ -105,7 +105,7 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       }).catch(next)
       // create a channel
   });
-  app.get('/languages', (req, res, next) => {
+  app.get('/api/languages', (req, res, next) => {
       var rpcInput = {
         method: 'allLanguages'
       }
@@ -115,7 +115,7 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       }).catch(next)
 
   })
-  app.get('/users/:id', (req, res, next) => {
+  app.get('/api/users/:id', (req, res, next) => {
       var rpcInput = {
         method: 'findUser',
         arguments: [
@@ -129,7 +129,7 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
         res.json(data);
       }).catch(next)
   })
-  app.get('/results/:userId', (req, res, next) => {
+  app.get('/api/results/:userId', (req, res, next) => {
       var workerInput = {
         method: 'getResults',
         payload: {
@@ -141,7 +141,7 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
         res.json({ results: data });
       })
   })
-  app.get('/users', (req, res, next) => {
+  app.get('/api/users', (req, res, next) => {
     var rpcInput = {
       method: 'allUsers',
     }
@@ -150,7 +150,7 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       res.json(data);
     }).catch(next)
   })
-  app.post('/comments', (req, res, next) => {
+  app.post('/api/comments', (req, res, next) => {
     var rpcInput = {
       method: 'setUserLanguages',
       arguments: [req.body.userId, { 
