@@ -1,7 +1,6 @@
 FROM node:latest
 MAINTAINER Robert Wilkinson
 LABEL Name=games-with-words-api Version=0.0.1 
-RUN npm install -g nodemon
 RUN apt-get update
 RUN apt-get install -y netcat
 COPY package.json /tmp/package.json
