@@ -15,11 +15,16 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     return winston.error(err)
   }
 
-  /* 
+  app.use((req, res,next) => {
+    winston.info('URL',req.url);
+    next()
+  });
+  /*
     Create and close a channel within the space of an http request
     all channels are created on the same persistent rabbit mq connection
   */
   // Send a post with question id and choice id
+  // app
   app.post('/users', (req, res, next) => {
     const { user, choiceId, questionId } = req.body;
     var rpcInput = {
@@ -65,10 +70,10 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       var workerInput = {
         method: 'getQuestion',
         payload: {
-          userId: user.id, 
-          questionId, 
+          userId: user.id,
+          questionId,
           choiceId
-        } 
+        }
       }
       return rpc(conn, 'task_queue', workerInput);
     }).then(data => {
@@ -133,8 +138,8 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       var workerInput = {
         method: 'getResults',
         payload: {
-          userId: req.params.userId, 
-        } 
+          userId: req.params.userId,
+        }
       }
       return rpc(conn, 'task_queue', workerInput)
       .then(data => {
@@ -153,7 +158,7 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
   app.post('/api/comments', (req, res, next) => {
     var rpcInput = {
       method: 'setUserLanguages',
-      arguments: [req.body.userId, { 
+      arguments: [req.body.userId, {
         nativeLanguages: req.body.nativeLanguages,
         primaryLanguages: req.body.primaryLanguages,
       }]
