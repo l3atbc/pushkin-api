@@ -1,6 +1,6 @@
 # Pushkin-API
 
-http://i.imgur.com/ncRJMJ5.png
+![](http://i.imgur.com/ncRJMJ5.png)
 
 # Overview
 
@@ -24,9 +24,7 @@ API Server is a light express server that defines the routes accessable to the c
 | `/api/users/:userId`    | GET    | n/a                                                 | Gets all the results for that specific user                                                                                                                                        |
 | `/api/users`            | GET    | n/a                                                 | An array of all users in system                                                                                                                                                    |
 | `/api/comments`         | POST   | `{ userId, primaryLanguages[], nativeLanguages[] }` | Updates the user, sets their primary and nativeLanguages                                                                                                                           |
-| `/api/admincsv`         | GET    |                                                     | Requires basic HTTP Auth based on usernames and passwords stored in admin.txt,
-Returns a CSV dump of response data.
-Customize `Worker#getResponseCsv`  to change the data returned |
+| `/api/admincsv`         | GET    |                                                     | Requires basic HTTP Auth based on usernames and passwords stored in admin.txt, Returns a CSV dump of response data. Customize `Worker#getResponseCsv`  to change the data returned |
 | `/api/results/:userId`  | GET    |                                                     | Returns the top languages for a specific user, returns the results of `Worker#getResults` .                                                                                        |
 
 
@@ -38,7 +36,7 @@ Clone the parent repo with the docker-compose file, insure that DB tables and se
 - to run the seeds, use `docker ps` get the process id for `pushkin_db` and execute `docker exec -it PROCESS_ID node seeder.js` 
 - remember you can shell into a docker container at any time
 
-hit `localhost/api/initialQuestions` to test this api.
+Make a request to `localhost/api/initialQuestions` to test this api.
 
 # Extension
 - Feel free to modify the logging mechanism
