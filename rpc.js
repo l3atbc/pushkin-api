@@ -8,7 +8,8 @@ module.exports = function (conn, channelName, body) {
       }
       // create a unique queue
       return ch.assertQueue(null, {
-        exclusive: true
+        exclusive: true,
+        autoDelete: true,
       }, (err, q) => {
         if (err) {
           return reject(err);
