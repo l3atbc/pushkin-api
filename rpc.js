@@ -9,8 +9,6 @@ module.exports = function (conn, channelName, body) {
       // create a unique queue
       return ch.assertQueue('', {
         exclusive: true,
-        durable: false,
-        autoDelete: true,
       }, (err, q) => {
         if (err) {
           return reject(err);
@@ -22,13 +20,14 @@ module.exports = function (conn, channelName, body) {
           msg => {
             // When the connection is closed it sends a blank message
             // check to make sure this isnt that
-            if(msg.content) {
+            if(msg) {
               const content = JSON.parse(msg.content.toString('utf8'));
               winston.info('received', content)
               if (msg.properties.correlationId === corr) {
                 // this is result of the RPC;
-                winston.info('is a match')
-                ch.close()
+                // winston.info('is a match')
+                console.log("canceling queue")
+                ch.deleteQueue(q.queue)
                 resolve(content);
                 // conn.close();
               }
