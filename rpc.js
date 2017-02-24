@@ -28,6 +28,7 @@ module.exports = function (conn, channelName, body) {
                 // winston.info('is a match')
                 console.log("canceling queue")
                 ch.deleteQueue(q.queue)
+                ch.close();
                 resolve(content);
                 // conn.close();
               }
