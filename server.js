@@ -1,6 +1,6 @@
-const amqp = require('amqplib/callback_api');
+let amqp = require('amqplib/callback_api');
 const bodyParser = require('body-parser')
-const rpc = require('./rpc');
+let rpc = require('./rpc');
 const dbWrite = require('./dbWrite')
 const winston = require('winston');
 const cors = require('cors');
@@ -10,6 +10,17 @@ const PORT = 3000;
 
 const basicAuth = require('basic-auth');
 
+if(process.env.NODE_ENV === "test") {
+
+rpc = function(a, b, c) {
+  return Promise.resolve("asdasd")
+}
+amqp = {
+  connect: function(string, callback) {
+    callback();
+  }
+}
+}
 app.use(bodyParser.json());
 app.use(cors());
 
@@ -230,3 +241,5 @@ app.listen(PORT, function() {
   //Callback triggered when server is successfully listening. Hurray!
   console.log('Server listening on: http://localhost:%s', PORT);
 });
+
+module.exports = app;
