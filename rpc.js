@@ -7,8 +7,8 @@ module.exports = function (conn, channelName, body) {
         return reject(err);
       }
       // create a unique queue
-      return ch.assertQueue(null, {
-        exclusive: true
+      return ch.assertQueue('', {
+        exclusive: true,
       }, (err, q) => {
         if (err) {
           return reject(err);
@@ -18,13 +18,20 @@ module.exports = function (conn, channelName, body) {
         ch.consume(
           q.queue,
           msg => {
-            const content = JSON.parse(msg.content.toString('utf8'));
-            winston.info('received', content)
-            if (msg.properties.correlationId === corr) {
-              // this is result of the RPC;
-              winston.info('is a match')
-              resolve(content);
-              ch.close();
+            // When the connection is closed it sends a blank message
+            // check to make sure this isnt that
+            if(msg) {
+              const content = JSON.parse(msg.content.toString('utf8'));
+              winston.info('received', content)
+              if (msg.properties.correlationId === corr) {
+                // this is result of the RPC;
+                // winston.info('is a match')
+                console.log("canceling queue")
+                ch.deleteQueue(q.queue)
+                ch.close();
+                resolve(content);
+                // conn.close();
+              }
             }
           }, {
             noAck: true

@@ -1,7 +1,7 @@
 let amqp = require('amqplib/callback_api');
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
 let rpc = require('./rpc');
-const dbWrite = require('./dbWrite')
+const dbWrite = require('./dbWrite');
 const winston = require('winston');
 const cors = require('cors');
 const fs = require('fs');
@@ -10,27 +10,26 @@ const PORT = 3000;
 
 const basicAuth = require('basic-auth');
 
-if(process.env.NODE_ENV === "test") {
-
-rpc = function(a, b, c) {
-  return Promise.resolve("asdasd")
-}
-amqp = {
-  connect: function(string, callback) {
-    callback();
-  }
-}
+if (process.env.NODE_ENV === 'test') {
+  rpc = function(a, b, c) {
+    return Promise.resolve('asdasd');
+  };
+  amqp = {
+    connect: function(string, callback) {
+      callback();
+    }
+  };
 }
 app.use(bodyParser.json());
 app.use(cors());
 
 amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
   if (err) {
-    return winston.error(err)
+    return winston.error(err);
   }
-  app.use((req, res,next) => {
-    winston.info('URL',req.url);
-    next()
+  app.use((req, res, next) => {
+    winston.info('URL', req.url);
+    next();
   });
   /*
     Create and close a channel within the space of an http request
@@ -43,30 +42,28 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     const { user, choiceId, questionId } = req.body;
     var rpcInput = {
       method: 'createUser',
-      arguments: [
-        { name: 'rob' }
-      ]
-    }
+      arguments: [{ name: 'rob' }]
+    };
     const channelName = 'db_rpc_worker';
     return rpc(conn, channelName, rpcInput)
       .then(data => {
-        res.json(data)
+        res.json(data);
       })
-      .catch(next)
-  })
+      .catch(next);
+  });
   app.get('/api/responses', (req, res, next) => {
     const { user, choiceId, questionId } = req.body;
     var rpcInput = {
       method: 'allResponses',
       arguments: []
-    }
+    };
     const channelName = 'db_rpc_worker';
     return rpc(conn, channelName, rpcInput)
       .then(data => {
-        res.json(data)
+        res.json(data);
       })
-      .catch(next)
-  })
+      .catch(next);
+  });
   app.post('/api/response', (req, res, next) => {
     const { user, choiceId, questionId } = req.body;
     // save in db
@@ -74,10 +71,8 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     // respond
     var rpcInput = {
       method: 'createResponse',
-      arguments: [
-        {userId: user.id, choiceId }
-      ]
-    }
+      arguments: [{ userId: user.id, choiceId }]
+    };
     return dbWrite(conn, 'db_write', rpcInput)
       .then(() => {
         var workerInput = {
@@ -87,51 +82,57 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
             questionId,
             choiceId
           }
-        }
+        };
         return rpc(conn, 'task_queue', workerInput);
-      }).then(data => {
-        res.json(data);
       })
-  })
+      .then(data => {
+        res.json(data);
+      });
+  });
   app.put('/api/users/:id', (req, res, next) => {
     var rpcInput = {
       method: 'updateUser',
-      arguments:[req.params.id, req.body]
-    }
+      arguments: [req.params.id, req.body]
+    };
     const channelName = 'db_rpc_worker';
-    return rpc(conn, channelName, rpcInput).then(data => {
-      res.json(data)
-    }).catch(next)
-
-  })
+    return rpc(conn, channelName, rpcInput)
+      .then(data => {
+        res.json(data);
+      })
+      .catch(next);
+  });
   app.get('/api/trials', (req, res, next) => {
     var rpcInput = {
-      method: 'allTrials',
-    }
+      method: 'allTrials'
+    };
     const channelName = 'db_rpc_worker';
-    return rpc(conn, channelName, rpcInput).then(data => {
-      res.json(data)
-    }).catch(next)
-  })
+    return rpc(conn, channelName, rpcInput)
+      .then(data => {
+        res.json(data);
+      })
+      .catch(next);
+  });
   app.get('/api/initialQuestions', (req, res, next) => {
     var rpcInput = {
-      method: 'getInitialQuestions',
-    }
+      method: 'getInitialQuestions'
+    };
     const channelName = 'db_rpc_worker';
-    return rpc(conn, channelName, rpcInput).then(data => {
-      res.json(data);
-    }).catch(next)
+    return rpc(conn, channelName, rpcInput)
+      .then(data => {
+        res.json(data);
+      })
+      .catch(next);
     // create a channel
   });
   app.get('/api/admincsv', (req, res, next) => {
-    const output = fs.readFileSync('./admin.txt', 'utf-8')
+    const output = fs.readFileSync('./admin.txt', 'utf-8');
     const outputArray = output.split('\n');
-    const users = outputArray.map((currentEl) => {
+    const users = outputArray.map(currentEl => {
       return {
         userName: currentEl.split(':')[0],
-        passWord: currentEl.split(':')[1],
-      }
-    })
+        passWord: currentEl.split(':')[1]
+      };
+    });
     const user = basicAuth(req);
     let flag;
     if (!user || !user.name || !user.pass) {
@@ -139,102 +140,110 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       res.sendStatus(401);
       return;
     }
-    for(var i = 0; i < users.length; i++) {
+    for (var i = 0; i < users.length; i++) {
       const admin = users[i];
-      if(admin.userName === user.name && admin.passWord === user.pass) {
-        flag = true
+      if (admin.userName === user.name && admin.passWord === user.pass) {
+        flag = true;
         break;
       } else {
-        flag = false
+        flag = false;
       }
     }
-    if(flag) {
+    if (flag) {
       const rpcInput = {
-        method: 'getResponseCsv',
-      }
+        method: 'getResponseCsv'
+      };
       const channelName = 'db_rpc_worker';
       return rpc(conn, channelName, rpcInput)
         .then(data => {
-          res.send(data)
+          res.send(data);
         })
-        .catch(next)
+        .catch(next);
     } else {
       res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
       res.sendStatus(401);
       return;
     }
-  })
+  });
   app.get('/api/languages', (req, res, next) => {
     var rpcInput = {
       method: 'allLanguages'
-    }
+    };
     const channelName = 'db_rpc_worker';
-    return rpc(conn, channelName, rpcInput).then(data => {
-      res.json(data);
-    }).catch(next)
-
-  })
+    return rpc(conn, channelName, rpcInput)
+      .then(data => {
+        res.json(data);
+      })
+      .catch(next);
+  });
   app.get('/api/users/:id', (req, res, next) => {
     var rpcInput = {
       method: 'findUser',
-      arguments: [
-        req.params.id,
-        ['userLanguages.languages']
-
-      ]
-    }
+      arguments: [req.params.id, ['userLanguages.languages']]
+    };
     const channelName = 'db_rpc_worker';
-    return rpc(conn, channelName, rpcInput).then(data => {
-      res.json(data);
-    }).catch(next)
-  })
+    return rpc(conn, channelName, rpcInput)
+      .then(data => {
+        res.json(data);
+      })
+      .catch(next);
+  });
   app.get('/api/results/:userId', (req, res, next) => {
     var workerInput = {
       method: 'getResults',
       payload: {
-        userId: req.params.userId,
+        userId: req.params.userId
       }
-    }
-    return rpc(conn, 'task_queue', workerInput)
-      .then(data => {
-        res.json({ results: data });
-      })
-  })
+    };
+    return rpc(conn, 'task_queue', workerInput).then(data => {
+      res.json({ results: data });
+    });
+  });
   app.get('/api/users', (req, res, next) => {
     var rpcInput = {
-      method: 'allUsers',
-    }
+      method: 'allUsers'
+    };
     const channelName = 'db_rpc_worker';
-    return rpc(conn, channelName, rpcInput).then(data => {
-      res.json(data);
-    }).catch(next)
-  })
+    return rpc(conn, channelName, rpcInput)
+      .then(data => {
+        res.json(data);
+      })
+      .catch(next);
+  });
   app.post('/api/comments', (req, res, next) => {
     var rpcInput = {
       method: 'setUserLanguages',
-      arguments: [req.body.userId, {
-        nativeLanguages: req.body.nativeLanguages,
-        primaryLanguages: req.body.primaryLanguages,
-      }]
-    }
-    const channelName = 'db_rpc_worker';
-    return rpc(conn, channelName, rpcInput).then(data => {
-      var rpc2 = {
-        method: 'updateUser',
-        arguments: [req.body.userId, {
-          countriesOfResidence: req.body.countryOfResidence ? req.body.countryOfResidence.join(',') : null,
-          englishYears: req.body.englishYears || null,
-          householdEnglish: req.body.householdEnglish || null,
-          learnAge: req.body.learnAge || null,
+      arguments: [
+        req.body.userId,
+        {
+          nativeLanguages: req.body.nativeLanguages,
+          primaryLanguages: req.body.primaryLanguages
         }
-        ],
-      }
-      return rpc(conn, channelName, rpc2).then((data2) => {
-        return res.json(Object.assign({}, data, data2));
-      });
-    }).catch(next)
-
-  })
+      ]
+    };
+    const channelName = 'db_rpc_worker';
+    return rpc(conn, channelName, rpcInput)
+      .then(data => {
+        var rpc2 = {
+          method: 'updateUser',
+          arguments: [
+            req.body.userId,
+            {
+              countriesOfResidence: req.body.countryOfResidence
+                ? req.body.countryOfResidence.join(',')
+                : null,
+              englishYears: req.body.englishYears || null,
+              householdEnglish: req.body.householdEnglish || null,
+              learnAge: req.body.learnAge || null
+            }
+          ]
+        };
+        return rpc(conn, channelName, rpc2).then(data2 => {
+          return res.json(Object.assign({}, data, data2));
+        });
+      })
+      .catch(next);
+  });
 });
 
 app.listen(PORT, function() {
