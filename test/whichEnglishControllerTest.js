@@ -5,8 +5,9 @@ const express = require('express');
 const request = require('supertest');
 const chai = require('chai');
 const sinon = require('sinon');
-
+const fs = require('fs');
 const expect = chai.expect;
+const path = require('path');
 
 // app.use(bodyParser.json());
 // app.use(cors());
@@ -278,6 +279,99 @@ describe('WHICH English Controller', () => {
             method: 'allTrials'
           });
         });
+      });
+    });
+    describe('GET /api/admincsv', () => {
+      it('should return 401 if unauthorized', () => {
+        let mockRpc = sinon.stub().returns(Promise.resolve());
+        let mockDbWrite = sinon.stub().returns(Promise.resolve());
+        const whichEnglishController = require('../controllers/whichEnglish')(
+          mockRpc,
+          'fake connection',
+          mockDbWrite
+        );
+        app.use('/', whichEnglishController);
+        app.use(errorHandler);
+        return request(app).get('/api/admincsv').expect(401);
+      });
+      it('shoud call rpcInput with getResponseCSV if authorization successful', done => {
+        return fs.readFile(
+          path.resolve(__dirname + '/../admin.txt'),
+          'utf-8',
+          (err, data) => {
+            if (err) {
+              throw err;
+            }
+            const outputArray = data.split('\n');
+            const user = {
+              name: outputArray[0].split(':')[0],
+              password: outputArray[0].split(':')[1]
+            };
+            let mockRpc = sinon.stub().returns(Promise.resolve());
+            let mockDbWrite = sinon.stub().returns(Promise.resolve());
+            const whichEnglishController = require('../controllers/whichEnglish')(
+              mockRpc,
+              'fake connection',
+              mockDbWrite
+            );
+            app.use('/', whichEnglishController);
+            app.use(errorHandler);
+            return request(app)
+              .get('/api/admincsv')
+              .auth(user.name, user.password)
+              .expect(200)
+              .end(() => {
+                expect(mockRpc.calledOnce).to.be.true;
+                expect(mockRpc.firstCall.args).to.have.lengthOf(3);
+                expect(mockRpc.firstCall.args[0]).to.equal('fake connection');
+                expect(mockRpc.firstCall.args[1]).to.equal('db_rpc_worker');
+                expect(mockRpc.firstCall.args[2]).to.eql({
+                  method: 'getResponseCsv'
+                });
+                done();
+              });
+          }
+        );
+      });
+      it('shoudl return the result of the rpc call as CSV data', done => {
+        return fs.readFile(
+          path.resolve(__dirname + '/../admin.txt'),
+          'utf-8',
+          (err, data) => {
+            if (err) {
+              throw err;
+            }
+            const outputArray = data.split('\n');
+            const user = {
+              name: outputArray[0].split(':')[0],
+              password: outputArray[0].split(':')[1]
+            };
+            let mockRpc = sinon.stub().returns(Promise.resolve('1,2,3\n4,5,6'));
+            let mockDbWrite = sinon.stub().returns(Promise.resolve());
+            const whichEnglishController = require('../controllers/whichEnglish')(
+              mockRpc,
+              'fake connection',
+              mockDbWrite
+            );
+            app.use('/', whichEnglishController);
+            app.use(errorHandler);
+            return request(app)
+              .get('/api/admincsv')
+              .auth(user.name, user.password)
+              .expect(200)
+              .end((err, resp) => {
+                if (err) {
+                  return done(err);
+                }
+                expect(mockRpc.calledOnce).to.be.true;
+                expect(resp.header['content-type']).to.equal(
+                  'text/csv; charset=utf-8'
+                );
+                expect(resp.text).to.eql('1,2,3\n4,5,6');
+                done();
+              });
+          }
+        );
       });
     });
   });
