@@ -51,6 +51,29 @@ function initialQuestions(rpc, conn, dbWrite) {
         res.json(data);
       });
   });
+  router.put('/api/users/:id', (req, res, next) => {
+    var rpcInput = {
+      method: 'updateUser',
+      arguments: [req.params.id, req.body]
+    };
+    const channelName = 'db_rpc_worker';
+    return rpc(conn, channelName, rpcInput)
+      .then(data => {
+        res.json(data);
+      })
+      .catch(next);
+  });
+  router.get('/api/trials', (req, res, next) => {
+    var rpcInput = {
+      method: 'allTrials'
+    };
+    const channelName = 'db_rpc_worker';
+    return rpc(conn, channelName, rpcInput)
+      .then(data => {
+        res.json(data);
+      })
+      .catch(next);
+  });
   return router;
 }
 

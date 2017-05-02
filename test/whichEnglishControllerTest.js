@@ -22,7 +22,7 @@ const expect = chai.expect;
 // });
 const errorHandler = (err, req, res, next) => {
   res.status(500);
-  console.log('error!!!', err);
+  // console.log('error!!!', err);
   res.json({ error: err.message });
 };
 describe('WHICH English Controller', () => {
@@ -102,7 +102,7 @@ describe('WHICH English Controller', () => {
               expectedChannel,
               body
             );
-            const rpcArguments = mockRpc.getCall(0).args;
+            const rpcArguments = mockRpc.firstCall.args;
             expect(rpcArguments).to.have.length(3);
             expect(rpcArguments[0]).to.eql('fake connection');
             expect(rpcArguments[1]).to.eql('db_rpc_worker');
@@ -141,7 +141,7 @@ describe('WHICH English Controller', () => {
           .expect(200)
           .then(response => {
             expect(mockDbWrite.called).to.be.true;
-            const dbWriterArguments = mockDbWrite.getCall(0).args;
+            const dbWriterArguments = mockDbWrite.firstCall.args;
             expect(dbWriterArguments).to.have.length(3);
             expect(dbWriterArguments[0]).to.eql('fake connection');
             expect(dbWriterArguments[1]).to.eql('db_write');
@@ -190,16 +190,94 @@ describe('WHICH English Controller', () => {
             );
             expect(mockDbWrite.called).to.be.true;
             expect(mockRpc.called).to.be.true;
-            expect(mockRpc.getCall(0).args.length).to.equal(3);
-            expect(mockRpc.getCall(0).args[0]).to.equal('fake connection');
-            expect(mockRpc.getCall(0).args[1]).to.equal('task_queue');
-            expect(mockRpc.getCall(0).args[2]).to.eql({
+            expect(mockRpc.firstCall.args.length).to.equal(3);
+            expect(mockRpc.firstCall.args[0]).to.equal('fake connection');
+            expect(mockRpc.firstCall.args[1]).to.equal('task_queue');
+            expect(mockRpc.firstCall.args[2]).to.eql({
               method: 'getQuestion',
               payload: { userId: 42, questionId: 100, choiceId: 1112 }
             });
 
             expect(wasCalledWithArgs).to.be.true;
           });
+      });
+    });
+    describe('PUT /api/users/:id', () => {
+      it('should call rpc with updateUser and return updated user if successful', () => {
+        let mockRpc = sinon.stub().returns(Promise.resolve());
+        let mockDbWrite = sinon.stub().returns(Promise.resolve());
+        const whichEnglishController = require('../controllers/whichEnglish')(
+          mockRpc,
+          'fake connection',
+          mockDbWrite
+        );
+        app.use('/', whichEnglishController);
+        app.use(errorHandler);
+        const userId = '1';
+        return request(app)
+          .put(`/api/users/${userId}`)
+          .set('Content-Type', 'application/json')
+          .set('Accept', 'application/json')
+          .send({ age: 5, gender: 'female' })
+          .expect(200)
+          .then(() => {
+            expect(mockRpc.calledOnce).to.be.true;
+            expect(mockRpc.firstCall.args.length).to.equal(3);
+            expect(mockRpc.firstCall.args[0]).to.equal('fake connection');
+            expect(mockRpc.firstCall.args[1]).to.equal('db_rpc_worker');
+            expect(mockRpc.firstCall.args[2]).to.eql({
+              method: 'updateUser',
+              arguments: [userId, { age: 5, gender: 'female' }]
+            });
+          });
+      });
+      it('should call rpc with updateUser and return an error if failed', () => {
+        let mockRpc = sinon
+          .stub()
+          .throws(new Error("user doesn't have an address"));
+        let mockDbWrite = sinon.stub().returns(Promise.resolve());
+        const whichEnglishController = require('../controllers/whichEnglish')(
+          mockRpc,
+          'fake connection',
+          mockDbWrite
+        );
+        const userId = '1';
+
+        app.use('/', whichEnglishController);
+        app.use(errorHandler);
+        return request(app)
+          .put(`/api/users/${userId}`)
+          .set('Content-Type', 'application/json')
+          .set('Accept', 'application/json')
+          .send({ address: '555 heaven st.' })
+          .expect(500)
+          .then(response => {
+            expect(response.body.error).to.equal(
+              "user doesn't have an address"
+            );
+          });
+      });
+    });
+    describe('GET /api/trials', () => {
+      it('should call rpc with allTrials and returns all trials if successful', () => {
+        let mockRpc = sinon.stub().returns(Promise.resolve());
+        let mockDbWrite = sinon.stub().returns(Promise.resolve());
+        const whichEnglishController = require('../controllers/whichEnglish')(
+          mockRpc,
+          'fake connection',
+          mockDbWrite
+        );
+        app.use('/', whichEnglishController);
+        app.use(errorHandler);
+        return request(app).get('/api/trials').expect(200).then(() => {
+          expect(mockRpc.calledOnce).to.be.true;
+          expect(mockRpc.firstCall.args.length).to.equal(3);
+          expect(mockRpc.firstCall.args[0]).to.equal('fake connection');
+          expect(mockRpc.firstCall.args[1]).to.equal('db_rpc_worker');
+          expect(mockRpc.firstCall.args[2]).to.eql({
+            method: 'allTrials'
+          });
+        });
       });
     });
   });

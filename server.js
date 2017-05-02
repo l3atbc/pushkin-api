@@ -31,6 +31,12 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     winston.info('URL', req.url);
     next();
   });
+  const whichEnglishController = require('./controllers/whichEnglish')(
+    rpc,
+    conn,
+    dbWrite
+  );
+  app.use('/', whichEnglishController);
   /*
     Create and close a channel within the space of an http request
     all channels are created on the same persistent rabbit mq connection
@@ -38,6 +44,7 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
 
   // Send a post with question id and choice id
   // app
+
   app.post('/users', (req, res, next) => {
     const { user, choiceId, questionId } = req.body;
     var rpcInput = {
@@ -50,79 +57,6 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
         res.json(data);
       })
       .catch(next);
-  });
-  app.get('/api/responses', (req, res, next) => {
-    const { user, choiceId, questionId } = req.body;
-    var rpcInput = {
-      method: 'allResponses',
-      arguments: []
-    };
-    const channelName = 'db_rpc_worker';
-    return rpc(conn, channelName, rpcInput)
-      .then(data => {
-        res.json(data);
-      })
-      .catch(next);
-  });
-  app.post('/api/response', (req, res, next) => {
-    const { user, choiceId, questionId } = req.body;
-    // save in db
-    // ask for next
-    // respond
-    var rpcInput = {
-      method: 'createResponse',
-      arguments: [{ userId: user.id, choiceId }]
-    };
-    return dbWrite(conn, 'db_write', rpcInput)
-      .then(() => {
-        var workerInput = {
-          method: 'getQuestion',
-          payload: {
-            userId: user.id,
-            questionId,
-            choiceId
-          }
-        };
-        return rpc(conn, 'task_queue', workerInput);
-      })
-      .then(data => {
-        res.json(data);
-      });
-  });
-  app.put('/api/users/:id', (req, res, next) => {
-    var rpcInput = {
-      method: 'updateUser',
-      arguments: [req.params.id, req.body]
-    };
-    const channelName = 'db_rpc_worker';
-    return rpc(conn, channelName, rpcInput)
-      .then(data => {
-        res.json(data);
-      })
-      .catch(next);
-  });
-  app.get('/api/trials', (req, res, next) => {
-    var rpcInput = {
-      method: 'allTrials'
-    };
-    const channelName = 'db_rpc_worker';
-    return rpc(conn, channelName, rpcInput)
-      .then(data => {
-        res.json(data);
-      })
-      .catch(next);
-  });
-  app.get('/api/initialQuestions', (req, res, next) => {
-    var rpcInput = {
-      method: 'getInitialQuestions'
-    };
-    const channelName = 'db_rpc_worker';
-    return rpc(conn, channelName, rpcInput)
-      .then(data => {
-        res.json(data);
-      })
-      .catch(next);
-    // create a channel
   });
   app.get('/api/admincsv', (req, res, next) => {
     const output = fs.readFileSync('./admin.txt', 'utf-8');
