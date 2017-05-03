@@ -23,7 +23,7 @@ const path = require('path');
 // });
 const errorHandler = (err, req, res, next) => {
   res.status(500);
-  console.log('error!!!', err);
+  // console.log('error!!!', err);
   res.json({ error: err.message });
 };
 describe('WHICH English Controller', () => {
@@ -39,7 +39,7 @@ describe('WHICH English Controller', () => {
     });
   });
 
-  describe('GET /api/initialQuestions', function() {
+  describe('GET /initialQuestions', function() {
     it('respond with json', function() {
       const mockResponse = {
         questions: [{ id: 1 }, { id: 2 }]
@@ -53,12 +53,12 @@ describe('WHICH English Controller', () => {
       app.use('/', whichEnglishController);
       app.use(errorHandler);
       return request(app)
-        .get('/api/initialQuestions')
+        .get('/initialQuestions')
         .set('Accept', 'application/json')
         .expect(200)
         .expect('Content-Type', /json/)
         .then(response => {
-          const expectedChannel = 'db_rpc_worker';
+          const expectedChannel = 'whichenglish_rpc_worker';
           const connection = 'fake connection';
           const body = {
             method: 'getInitialQuestions'
@@ -74,7 +74,7 @@ describe('WHICH English Controller', () => {
         });
     });
   });
-  describe('GET /api/responses', () => {
+  describe('GET /responses', () => {
     it('should call rpc with allResponses', () => {
       const mockResponse = {
         responses: ['response 1']
@@ -88,12 +88,12 @@ describe('WHICH English Controller', () => {
       app.use(errorHandler);
 
       return request(app)
-        .get('/api/responses')
+        .get('/responses')
         .set('Accept', 'application/json')
         .expect(200)
         .expect('Content-Type', /json/)
         .then(response => {
-          const expectedChannel = 'db_rpc_worker';
+          const expectedChannel = 'whichenglish_rpc_worker';
           const connection = 'fake connection';
           const body = {
             method: 'allResponses',
@@ -107,7 +107,7 @@ describe('WHICH English Controller', () => {
           const rpcArguments = mockRpc.firstCall.args;
           expect(rpcArguments).to.have.length(3);
           expect(rpcArguments[0]).to.eql('fake connection');
-          expect(rpcArguments[1]).to.eql('db_rpc_worker');
+          expect(rpcArguments[1]).to.eql('whichenglish_rpc_worker');
           expect(rpcArguments[2]).to.eql({
             method: 'allResponses',
             arguments: []
@@ -120,7 +120,7 @@ describe('WHICH English Controller', () => {
         });
     });
   });
-  describe('POST /api/response', () => {
+  describe('POST /response', () => {
     it('should insert workerInput to DB write with the user Id and the Choice ID', () => {
       const mockResponse = {
         responses: ['response 1']
@@ -136,7 +136,7 @@ describe('WHICH English Controller', () => {
       app.use(errorHandler);
 
       return request(app)
-        .post('/api/response')
+        .post('/response')
         .set('Content-Type', 'application/json')
         .set('Accept', 'application/json')
         .send({ user: { id: 1 }, questionId: 1, choiceId: 1 })
@@ -146,13 +146,13 @@ describe('WHICH English Controller', () => {
           const dbWriterArguments = mockDbWrite.firstCall.args;
           expect(dbWriterArguments).to.have.length(3);
           expect(dbWriterArguments[0]).to.eql('fake connection');
-          expect(dbWriterArguments[1]).to.eql('db_write');
+          expect(dbWriterArguments[1]).to.eql('whichenglish_db_write');
           expect(dbWriterArguments[2]).to.eql({
             method: 'createResponse',
             arguments: [{ userId: 1, choiceId: 1 }]
           });
           expect(
-            mockDbWrite.calledWith('fake connection', 'db_write', {
+            mockDbWrite.calledWith('fake connection', 'whichenglish_db_write', {
               method: 'createResponse',
               arguments: [{ userId: 1, choiceId: 1 }]
             })
@@ -173,7 +173,7 @@ describe('WHICH English Controller', () => {
       app.use('/', whichEnglishController);
       app.use(errorHandler);
       return request(app)
-        .post('/api/response')
+        .post('/response')
         .set('Content-Type', 'application/json')
         .set('Accept', 'application/json')
         .send({ user: { id: 42 }, questionId: 100, choiceId: 1112 })
@@ -204,7 +204,7 @@ describe('WHICH English Controller', () => {
         });
     });
   });
-  describe('PUT /api/users/:id', () => {
+  describe('PUT /users/:id', () => {
     it('should call rpc with updateUser and return updated user if successful', () => {
       let mockRpc = sinon.stub().returns(Promise.resolve());
       let mockDbWrite = sinon.stub().returns(Promise.resolve());
@@ -217,7 +217,7 @@ describe('WHICH English Controller', () => {
       app.use(errorHandler);
       const userId = '1';
       return request(app)
-        .put(`/api/users/${userId}`)
+        .put(`/users/${userId}`)
         .set('Content-Type', 'application/json')
         .set('Accept', 'application/json')
         .send({ age: 5, gender: 'female' })
@@ -226,7 +226,7 @@ describe('WHICH English Controller', () => {
           expect(mockRpc.calledOnce).to.be.true;
           expect(mockRpc.firstCall.args.length).to.equal(3);
           expect(mockRpc.firstCall.args[0]).to.equal('fake connection');
-          expect(mockRpc.firstCall.args[1]).to.equal('db_rpc_worker');
+          expect(mockRpc.firstCall.args[1]).to.equal('whichenglish_rpc_worker');
           expect(mockRpc.firstCall.args[2]).to.eql({
             method: 'updateUser',
             arguments: [userId, { age: 5, gender: 'female' }]
@@ -248,7 +248,7 @@ describe('WHICH English Controller', () => {
       app.use('/', whichEnglishController);
       app.use(errorHandler);
       return request(app)
-        .put(`/api/users/${userId}`)
+        .put(`/users/${userId}`)
         .set('Content-Type', 'application/json')
         .set('Accept', 'application/json')
         .send({ address: '555 heaven st.' })
@@ -258,7 +258,7 @@ describe('WHICH English Controller', () => {
         });
     });
   });
-  describe('GET /api/trials', () => {
+  describe('GET /trials', () => {
     it('should call rpc with allTrials and returns all trials if successful', () => {
       let mockRpc = sinon.stub().returns(Promise.resolve());
       let mockDbWrite = sinon.stub().returns(Promise.resolve());
@@ -269,18 +269,18 @@ describe('WHICH English Controller', () => {
       );
       app.use('/', whichEnglishController);
       app.use(errorHandler);
-      return request(app).get('/api/trials').expect(200).then(() => {
+      return request(app).get('/trials').expect(200).then(() => {
         expect(mockRpc.calledOnce).to.be.true;
         expect(mockRpc.firstCall.args.length).to.equal(3);
         expect(mockRpc.firstCall.args[0]).to.equal('fake connection');
-        expect(mockRpc.firstCall.args[1]).to.equal('db_rpc_worker');
+        expect(mockRpc.firstCall.args[1]).to.equal('whichenglish_rpc_worker');
         expect(mockRpc.firstCall.args[2]).to.eql({
           method: 'allTrials'
         });
       });
     });
   });
-  describe('GET /api/admincsv', () => {
+  describe('GET /admincsv', () => {
     it('should return 401 if unauthorized', () => {
       let mockRpc = sinon.stub().returns(Promise.resolve());
       let mockDbWrite = sinon.stub().returns(Promise.resolve());
@@ -291,7 +291,7 @@ describe('WHICH English Controller', () => {
       );
       app.use('/', whichEnglishController);
       app.use(errorHandler);
-      return request(app).get('/api/admincsv').expect(401);
+      return request(app).get('/admincsv').expect(401);
     });
     it('shoud call rpcInput with getResponseCSV if authorization successful', done => {
       return fs.readFile(
@@ -316,14 +316,16 @@ describe('WHICH English Controller', () => {
           app.use('/', whichEnglishController);
           app.use(errorHandler);
           return request(app)
-            .get('/api/admincsv')
+            .get('/admincsv')
             .auth(user.name, user.password)
             .expect(200)
             .end(() => {
               expect(mockRpc.calledOnce).to.be.true;
               expect(mockRpc.firstCall.args).to.have.lengthOf(3);
               expect(mockRpc.firstCall.args[0]).to.equal('fake connection');
-              expect(mockRpc.firstCall.args[1]).to.equal('db_rpc_worker');
+              expect(mockRpc.firstCall.args[1]).to.equal(
+                'whichenglish_rpc_worker'
+              );
               expect(mockRpc.firstCall.args[2]).to.eql({
                 method: 'getResponseCsv'
               });
@@ -355,7 +357,7 @@ describe('WHICH English Controller', () => {
           app.use('/', whichEnglishController);
           app.use(errorHandler);
           return request(app)
-            .get('/api/admincsv')
+            .get('/admincsv')
             .auth(user.name, user.password)
             .expect(200)
             .end((err, resp) => {
@@ -373,7 +375,7 @@ describe('WHICH English Controller', () => {
       );
     });
   });
-  describe('GET /api/languages', () => {
+  describe('GET /languages', () => {
     it('should call rpc with allLanguages and return all languages when successful', () => {
       let mockRpc = sinon.stub().returns(Promise.resolve());
       let mockDbWrite = sinon.stub().returns(Promise.resolve());
@@ -384,18 +386,18 @@ describe('WHICH English Controller', () => {
       );
       app.use('/', whichEnglishController);
       app.use(errorHandler);
-      return request(app).get('/api/languages').expect(200).then(() => {
+      return request(app).get('/languages').expect(200).then(() => {
         expect(mockRpc.calledOnce).to.be.true;
         expect(mockRpc.firstCall.args).to.have.lengthOf(3);
         expect(mockRpc.firstCall.args[0]).to.equal('fake connection');
-        expect(mockRpc.firstCall.args[1]).to.equal('db_rpc_worker');
+        expect(mockRpc.firstCall.args[1]).to.equal('whichenglish_rpc_worker');
         expect(mockRpc.firstCall.args[2]).to.eql({
           method: 'allLanguages'
         });
       });
     });
   });
-  describe('GET /api/users/:id', () => {
+  describe('GET /users/:id', () => {
     it('should call rpc with findUser and return user when successful', () => {
       let mockRpc = sinon.stub().returns(Promise.resolve('1,2,3\n4,5,6'));
       let mockDbWrite = sinon.stub().returns(Promise.resolve());
@@ -407,11 +409,11 @@ describe('WHICH English Controller', () => {
       const userId = '1';
       app.use('/', whichEnglishController);
       app.use(errorHandler);
-      return request(app).get(`/api/users/${userId}`).expect(200).then(() => {
+      return request(app).get(`/users/${userId}`).expect(200).then(() => {
         expect(mockRpc.calledOnce).to.be.true;
         expect(mockRpc.firstCall.args).to.have.lengthOf(3);
         expect(mockRpc.firstCall.args[0]).to.equal('fake connection');
-        expect(mockRpc.firstCall.args[1]).to.equal('db_rpc_worker');
+        expect(mockRpc.firstCall.args[1]).to.equal('whichenglish_rpc_worker');
         expect(mockRpc.firstCall.args[2]).to.eql({
           method: 'findUser',
           arguments: [userId, ['userLanguages.languages']]
@@ -419,7 +421,7 @@ describe('WHICH English Controller', () => {
       });
     });
   });
-  describe('Get /api/results/:userId', () => {
+  describe('Get /results/:userId', () => {
     it('should call rpc with getResults and return results for a user when successful', () => {
       let mockRpc = sinon.stub().returns(Promise.resolve());
       let mockDbWrite = sinon.stub().returns(Promise.resolve());
@@ -431,7 +433,7 @@ describe('WHICH English Controller', () => {
       const userId = '1';
       app.use('/', whichEnglishController);
       app.use(errorHandler);
-      return request(app).get(`/api/results/${userId}`).expect(200).then(() => {
+      return request(app).get(`/results/${userId}`).expect(200).then(() => {
         expect(mockRpc.calledOnce).to.be.true;
         expect(mockRpc.firstCall.args).to.have.lengthOf(3);
         expect(mockRpc.firstCall.args).to.eql([
@@ -447,7 +449,7 @@ describe('WHICH English Controller', () => {
       });
     });
   });
-  describe('POST /api/comments', () => {
+  describe('POST /comments', () => {
     it('should call rpc with setUserLanguages', () => {
       let mockRpc = sinon.stub().returns(Promise.resolve());
       let mockDbWrite = sinon.stub().returns(Promise.resolve());
@@ -460,7 +462,7 @@ describe('WHICH English Controller', () => {
       app.use('/', whichEnglishController);
       app.use(errorHandler);
       return request(app)
-        .post('/api/comments')
+        .post('/comments')
         .set('Content-Type', 'application/json')
         .set('Accept', 'application/json')
         .send({
@@ -473,7 +475,7 @@ describe('WHICH English Controller', () => {
           expect(mockRpc.calledTwice).to.be.true;
           expect(mockRpc.firstCall.args).to.eql([
             'fake connection',
-            'db_rpc_worker',
+            'whichenglish_rpc_worker',
             {
               method: 'setUserLanguages',
               arguments: [
@@ -499,7 +501,7 @@ describe('WHICH English Controller', () => {
       app.use('/', whichEnglishController);
       app.use(errorHandler);
       return request(app)
-        .post('/api/comments')
+        .post('/comments')
         .set('Content-Type', 'application/json')
         .set('Accept', 'application/json')
         .send({
@@ -516,7 +518,7 @@ describe('WHICH English Controller', () => {
           expect(mockRpc.calledTwice).to.be.true;
           expect(mockRpc.secondCall.args).to.eql([
             'fake connection',
-            'db_rpc_worker',
+            'whichenglish_rpc_worker',
             {
               method: 'updateUser',
               arguments: [
@@ -546,7 +548,7 @@ describe('WHICH English Controller', () => {
       app.use('/', whichEnglishController);
       app.use(errorHandler);
       return request(app)
-        .post('/api/comments')
+        .post('/comments')
         .set('Content-Type', 'application/json')
         .set('Accept', 'application/json')
         .send({

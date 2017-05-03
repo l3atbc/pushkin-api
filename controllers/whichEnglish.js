@@ -14,15 +14,20 @@ const checkUser = (username, password) => {
   return users.some(
     admin => admin.username === username && admin.password === password
   );
-  [1, 2].values() === [1, 2];
+};
+const getFileName = () => {
+  const fullPath = __filename;
+  const fileName = fullPath.replace(/^.*[\\\/]/, '');
+  return fileName.replace('.js', '').toLowerCase();
 };
 module.exports = (rpc, conn, dbWrite) => {
+  const fileName = getFileName();
   const router = new express.Router();
-  router.get('/api/initialQuestions', (req, res, next) => {
+  router.get('/initialQuestions', (req, res, next) => {
     var rpcInput = {
       method: 'getInitialQuestions'
     };
-    const channelName = 'db_rpc_worker';
+    const channelName = fileName + '_rpc_worker';
     return rpc(conn, channelName, rpcInput)
       .then(data => {
         res.json(data);
@@ -30,20 +35,20 @@ module.exports = (rpc, conn, dbWrite) => {
       .catch(next);
     // create a channel
   });
-  router.get('/api/responses', (req, res, next) => {
+  router.get('/responses', (req, res, next) => {
     const { user, choiceId, questionId } = req.body;
     var rpcInput = {
       method: 'allResponses',
       arguments: []
     };
-    const channelName = 'db_rpc_worker';
+    const channelName = fileName + '_rpc_worker';
     return rpc(conn, channelName, rpcInput)
       .then(data => {
         res.json(data);
       })
       .catch(next);
   });
-  router.post('/api/response', (req, res, next) => {
+  router.post('/response', (req, res, next) => {
     const { user, choiceId, questionId } = req.body;
     // save in db
     // ask for next
@@ -52,7 +57,7 @@ module.exports = (rpc, conn, dbWrite) => {
       method: 'createResponse',
       arguments: [{ userId: user.id, choiceId }]
     };
-    return dbWrite(conn, 'db_write', rpcInput)
+    return dbWrite(conn, fileName + '_db_write', rpcInput)
       .then(() => {
         var workerInput = {
           method: 'getQuestion',
@@ -68,30 +73,30 @@ module.exports = (rpc, conn, dbWrite) => {
         res.json(data);
       });
   });
-  router.put('/api/users/:id', (req, res, next) => {
+  router.put('/users/:id', (req, res, next) => {
     var rpcInput = {
       method: 'updateUser',
       arguments: [req.params.id, req.body]
     };
-    const channelName = 'db_rpc_worker';
+    const channelName = fileName + '_rpc_worker';
     return rpc(conn, channelName, rpcInput)
       .then(data => {
         res.json(data);
       })
       .catch(next);
   });
-  router.get('/api/trials', (req, res, next) => {
+  router.get('/trials', (req, res, next) => {
     var rpcInput = {
       method: 'allTrials'
     };
-    const channelName = 'db_rpc_worker';
+    const channelName = fileName + '_rpc_worker';
     return rpc(conn, channelName, rpcInput)
       .then(data => {
         res.json(data);
       })
       .catch(next);
   });
-  router.get('/api/admincsv', (req, res, next) => {
+  router.get('/admincsv', (req, res, next) => {
     // TODO: refactor this to be set on contruction of the controller
     // possibly
     const user = basicAuth(req);
@@ -103,7 +108,7 @@ module.exports = (rpc, conn, dbWrite) => {
       const rpcInput = {
         method: 'getResponseCsv'
       };
-      const channelName = 'db_rpc_worker';
+      const channelName = fileName + '_rpc_worker';
       return rpc(conn, channelName, rpcInput)
         .then(data => {
           res.set('Content-Type', 'text/csv');
@@ -116,30 +121,30 @@ module.exports = (rpc, conn, dbWrite) => {
       return;
     }
   });
-  router.get('/api/languages', (req, res, next) => {
+  router.get('/languages', (req, res, next) => {
     var rpcInput = {
       method: 'allLanguages'
     };
-    const channelName = 'db_rpc_worker';
+    const channelName = fileName + '_rpc_worker';
     return rpc(conn, channelName, rpcInput)
       .then(data => {
         res.json(data);
       })
       .catch(next);
   });
-  router.get('/api/users/:id', (req, res, next) => {
+  router.get('/users/:id', (req, res, next) => {
     var rpcInput = {
       method: 'findUser',
       arguments: [req.params.id, ['userLanguages.languages']]
     };
-    const channelName = 'db_rpc_worker';
+    const channelName = fileName + '_rpc_worker';
     return rpc(conn, channelName, rpcInput)
       .then(data => {
         res.json(data);
       })
       .catch(next);
   });
-  router.get('/api/results/:userId', (req, res, next) => {
+  router.get('/results/:userId', (req, res, next) => {
     var workerInput = {
       method: 'getResults',
       payload: {
@@ -150,7 +155,7 @@ module.exports = (rpc, conn, dbWrite) => {
       res.json({ results: data });
     });
   });
-  router.post('/api/comments', (req, res, next) => {
+  router.post('/comments', (req, res, next) => {
     var rpcInput = {
       method: 'setUserLanguages',
       arguments: [
@@ -161,7 +166,7 @@ module.exports = (rpc, conn, dbWrite) => {
         }
       ]
     };
-    const channelName = 'db_rpc_worker';
+    const channelName = fileName + '_rpc_worker';
     return rpc(conn, channelName, rpcInput)
       .then(data => {
         var rpc2 = {

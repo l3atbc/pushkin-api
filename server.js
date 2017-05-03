@@ -7,6 +7,7 @@ const cors = require('cors');
 const fs = require('fs');
 const app = require('express')();
 const PORT = 3000;
+const path = require('path');
 
 const basicAuth = require('basic-auth');
 
@@ -70,7 +71,13 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       .catch(next);
   });
 });
-
+const controllers = fs.readdirSync(path.resolve(__dirname, 'controllers'));
+controllers.forEach(controllerFile => {
+  const short = controllerFile.replace('.js', '');
+  const route = '/api/' + short;
+  const controller = require('./controllers/' + short);
+  app.use(route, controller);
+});
 app.listen(PORT, function() {
   //Callback triggered when server is successfully listening. Hurray!
   console.log('Server listening on: http://localhost:%s', PORT);
