@@ -32,12 +32,13 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     winston.info('URL', req.url);
     next();
   });
-  const whichEnglishController = require('./controllers/whichEnglish')(
-    rpc,
-    conn,
-    dbWrite
-  );
-  app.use('/', whichEnglishController);
+  const controllers = fs.readdirSync(path.resolve(__dirname, 'controllers'));
+  controllers.forEach(controllerFile => {
+    const short = controllerFile.toLowerCase().replace('.js', '');
+    const route = '/api/' + short;
+    const controller = require('./controllers/' + short)(rpc, conn, dbWrite);
+    app.use(route, controller);
+  });
   /*
     Create and close a channel within the space of an http request
     all channels are created on the same persistent rabbit mq connection
@@ -70,13 +71,6 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       })
       .catch(next);
   });
-});
-const controllers = fs.readdirSync(path.resolve(__dirname, 'controllers'));
-controllers.forEach(controllerFile => {
-  const short = controllerFile.replace('.js', '');
-  const route = '/api/' + short;
-  const controller = require('./controllers/' + short);
-  app.use(route, controller);
 });
 app.listen(PORT, function() {
   //Callback triggered when server is successfully listening. Hurray!
