@@ -97,7 +97,7 @@ describe('WHICH English Controller', () => {
           const connection = 'fake connection';
           const body = {
             method: 'allResponses',
-            arguments: []
+            params: []
           };
           const wasCalledWithArgs = mockRpc.calledWith(
             connection,
@@ -110,7 +110,7 @@ describe('WHICH English Controller', () => {
           expect(rpcArguments[1]).to.eql('whichenglish_rpc_worker');
           expect(rpcArguments[2]).to.eql({
             method: 'allResponses',
-            arguments: []
+            params: []
           });
           expect(wasCalledWithArgs).to.be.true;
           return response;
@@ -149,12 +149,12 @@ describe('WHICH English Controller', () => {
           expect(dbWriterArguments[1]).to.eql('whichenglish_db_write');
           expect(dbWriterArguments[2]).to.eql({
             method: 'createResponse',
-            arguments: [{ userId: 1, choiceId: 1 }]
+            params: [{ userId: 1, choiceId: 1 }]
           });
           expect(
             mockDbWrite.calledWith('fake connection', 'whichenglish_db_write', {
               method: 'createResponse',
-              arguments: [{ userId: 1, choiceId: 1 }]
+              params: [{ userId: 1, choiceId: 1 }]
             })
           ).to.be.true;
         });
@@ -229,7 +229,7 @@ describe('WHICH English Controller', () => {
           expect(mockRpc.firstCall.args[1]).to.equal('whichenglish_rpc_worker');
           expect(mockRpc.firstCall.args[2]).to.eql({
             method: 'updateUser',
-            arguments: [userId, { age: 5, gender: 'female' }]
+            params: [userId, { age: 5, gender: 'female' }]
           });
         });
     });
@@ -416,7 +416,7 @@ describe('WHICH English Controller', () => {
         expect(mockRpc.firstCall.args[1]).to.equal('whichenglish_rpc_worker');
         expect(mockRpc.firstCall.args[2]).to.eql({
           method: 'findUser',
-          arguments: [userId, ['userLanguages.languages']]
+          params: [userId, ['userLanguages.languages']]
         });
       });
     });
@@ -478,7 +478,7 @@ describe('WHICH English Controller', () => {
             'whichenglish_rpc_worker',
             {
               method: 'setUserLanguages',
-              arguments: [
+              params: [
                 userId,
                 {
                   nativeLanguages: ['chinese', 'english'],
@@ -521,7 +521,7 @@ describe('WHICH English Controller', () => {
             'whichenglish_rpc_worker',
             {
               method: 'updateUser',
-              arguments: [
+              params: [
                 userId,
                 {
                   countriesOfResidence: 'china,usa',
