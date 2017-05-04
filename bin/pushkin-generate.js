@@ -7,7 +7,9 @@ const moment = require('moment');
 
 function addController(quizname) {
   try {
-    const from = path.resolve('./controllers/whichEnglish.js');
+    const from = path.resolve(
+      './controllers/generalController/generalController.js'
+    );
     const to = path.resolve(`./controllers/${quizname}.js`);
     fs.copy(from, to, (err, success) => {
       if (err) {
@@ -33,7 +35,7 @@ function addModel(quizname) {
       users: `${quizname}_users`,
       responses: `${quizname}_responses`
     };
-    sortedSchemas.forEach(currentSchema => {
+    sortedSchemas.forEach((currentSchema, index) => {
       return fs.readFile(
         `../pushkin-db/migrations/generalSchemas/${currentSchema}`,
         'utf8',
@@ -45,9 +47,14 @@ function addModel(quizname) {
           const result = data.replace(re, matched => {
             return mapObj[matched];
           });
+          const formatedFileName = currentSchema.replace(/\d_/, '');
           return fs.writeFile(
             path.resolve(
-              `../pushkin-db/migrations/${moment().format('YYYYMMDDHHmmss')}_create_${quizname}_${currentSchema}`
+              `../pushkin-db/migrations/${moment()
+                .add(index, 'second')
+                .format(
+                  'YYYYMMDDHHmmss'
+                )}_create_${quizname}_${formatedFileName}`
             ),
             result,
             function(err) {
