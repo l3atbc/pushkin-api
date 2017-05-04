@@ -3,6 +3,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const program = require('commander');
 const chalk = require('chalk');
+const moment = require('moment');
 
 function addController(quizname) {
   try {
@@ -19,7 +20,47 @@ function addController(quizname) {
     console.log(chalk.red('please make sure to run this in a pushkin folder'));
   }
 }
-
+function addModel(quizname) {
+  try {
+    const schemas = fs.readdirSync(
+      path.resolve('../pushkin-db/migrations/generalSchemas')
+    );
+    const sortedSchemas = schemas.sort();
+    const mapObj = {
+      trials: `${quizname}_trials`,
+      questions: `${quizname}_questions`,
+      choices: `${quizname}_choices`,
+      users: `${quizname}_users`,
+      responses: `${quizname}_responses`
+    };
+    sortedSchemas.forEach(currentSchema => {
+      return fs.readFile(
+        `../pushkin-db/migrations/generalSchemas/${currentSchema}`,
+        'utf8',
+        (err, data) => {
+          if (err) {
+            return console.log('err on reading file', err);
+          }
+          const re = new RegExp(Object.keys(mapObj).join('|'), 'gi');
+          const result = data.replace(re, matched => {
+            return mapObj[matched];
+          });
+          return fs.writeFile(
+            path.resolve(
+              `../pushkin-db/migrations/${moment().format('YYYYMMDDHHmmss')}_create_${quizname}_${currentSchema}`
+            ),
+            result,
+            function(err) {
+              if (err) return console.log('error while writing file', err);
+            }
+          );
+        }
+      );
+    });
+  } catch (err) {
+    console.log('error!!', err);
+  }
+}
 program.parse(process.argv);
 
 const thing = program.args[0];
@@ -31,10 +72,11 @@ if (thing && name) {
       addController(name);
       break;
     case 'model':
+      addModel(name);
       break;
     default:
       console.log('please input a command');
   }
 } else {
-  console.log('missing entity or name');
+  console.log(chalk.red('missing entity or name'));
 }
