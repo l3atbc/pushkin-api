@@ -39,7 +39,7 @@ module.exports = (rpc, conn, dbWrite) => {
     const { user, choiceId, questionId } = req.body;
     var rpcInput = {
       method: 'allResponses',
-      arguments: []
+      params: []
     };
     const channelName = fileName + '_rpc_worker';
     return rpc(conn, channelName, rpcInput)
@@ -55,7 +55,7 @@ module.exports = (rpc, conn, dbWrite) => {
     // respond
     var rpcInput = {
       method: 'createResponse',
-      arguments: [{ userId: user.id, choiceId }]
+      params: [{ userId: user.id, choiceId }]
     };
     return dbWrite(conn, fileName + '_db_write', rpcInput)
       .then(() => {
@@ -76,7 +76,7 @@ module.exports = (rpc, conn, dbWrite) => {
   router.put('/users/:id', (req, res, next) => {
     var rpcInput = {
       method: 'updateUser',
-      arguments: [req.params.id, req.body]
+      params: [req.params.id, req.body]
     };
     const channelName = fileName + '_rpc_worker';
     return rpc(conn, channelName, rpcInput)
@@ -135,7 +135,7 @@ module.exports = (rpc, conn, dbWrite) => {
   router.get('/users/:id', (req, res, next) => {
     var rpcInput = {
       method: 'findUser',
-      arguments: [req.params.id, ['userLanguages.languages']]
+      params: [req.params.id, ['userLanguages.languages']]
     };
     const channelName = fileName + '_rpc_worker';
     return rpc(conn, channelName, rpcInput)
@@ -158,7 +158,7 @@ module.exports = (rpc, conn, dbWrite) => {
   router.post('/comments', (req, res, next) => {
     var rpcInput = {
       method: 'setUserLanguages',
-      arguments: [
+      params: [
         req.body.userId,
         {
           nativeLanguages: req.body.nativeLanguages,
@@ -171,7 +171,7 @@ module.exports = (rpc, conn, dbWrite) => {
       .then(data => {
         var rpc2 = {
           method: 'updateUser',
-          arguments: [
+          params: [
             req.body.userId,
             {
               countriesOfResidence: req.body.countryOfResidence
