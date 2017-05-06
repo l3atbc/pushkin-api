@@ -85,14 +85,32 @@ function copyModels(quizname, mapObj) {
     );
   });
 }
+function copySeeds(quizname) {
+  fs.mkdirSync(`../pushkin-db/seeds/${quizname}`);
+  try {
+    const from = path.resolve('./bin/generalSeeds');
+    const to = path.resolve(`../pushkin-db/seeds/${quizname}`);
+    fs.copy(from, to, err => {
+      if (err) {
+        return console.log(chalk.red('err on copying seed files'));
+        process.exit(1);
+      }
+      process.exit();
+    });
+  } catch (err) {
+    console.log(chalk.red('please make sure to run this in a pushkin folder'));
+  }
+}
 function addModel(quizname) {
   const schemaFileList = fs.readdirSync(
     path.resolve('../pushkin-db/migrations')
   );
   const modelFileList = fs.readdirSync(path.resolve('../pushkin-db/models'));
+  const seedFileList = fs.readdirSync(path.resolve('../pushkin-db/seeds'));
   if (
     checkIfFileExist(schemaFileList, quizname) ||
-    checkIfFileExist(modelFileList, quizname)
+    checkIfFileExist(modelFileList, quizname) ||
+    checkIfFileExist(seedFileList, quizname)
   ) {
     return console.log(
       chalk.red(
@@ -111,9 +129,13 @@ function addModel(quizname) {
       return new Promise((resolve, reject) => {
         copySchemas(quizname, mapObj, schemaFileList);
         resolve();
-      }).then(() => {
-        copyModels(quizname, mapObj);
-      });
+      })
+        .then(() => {
+          copyModels(quizname, mapObj);
+        })
+        .then(() => {
+          copySeeds(quizname);
+        });
     } catch (err) {
       console.log('error!!', err);
     }
