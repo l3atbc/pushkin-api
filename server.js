@@ -9,18 +9,6 @@ const app = require('express')();
 const PORT = 3000;
 const path = require('path');
 
-const basicAuth = require('basic-auth');
-
-if (process.env.NODE_ENV === 'test') {
-  rpc = function(a, b, c) {
-    return Promise.resolve('asdasd');
-  };
-  amqp = {
-    connect: function(string, callback) {
-      callback();
-    }
-  };
-}
 app.use(bodyParser.json());
 app.use(cors());
 
@@ -71,7 +59,25 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
       })
       .catch(next);
   });
+  app.use((req, res, next) => {
+    res.status(404).json({ message: 'Route not found' });
+  });
 });
+app.get('/api/routes', (req, res, next) => {
+  res.json({
+    routes: app._router.stack.filter(stack => stack.route).map(stack => ({
+      methods: Object.keys(stack.route.methods).map(method =>
+        method.toUpperCase()
+      ),
+      path: stack.route.path
+    }))
+  });
+});
+app.use((err, req, res, next) => {
+  res.status(500);
+  res.json({ message: err.message });
+});
+
 app.listen(PORT, function() {
   //Callback triggered when server is successfully listening. Hurray!
   console.log('Server listening on: http://localhost:%s', PORT);
