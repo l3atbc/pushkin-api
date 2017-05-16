@@ -3,13 +3,14 @@
 let _ = require('lodash');
 
 module.exports = (expressApp, filename) => {
-  const COLUMN_WIDTH_TREE = 50;
-  const COLUMN_WIDTH_PATH = 60;
+  const COLUMN_WIDTH_TREE = 1;
+  const COLUMN_WIDTH_PATH = 1;
   const TREE_INDENT_SIZE = 5;
 
-  let text = [];
+  let text = ['<html><body><table><tr><td>'];
 
   function fillWithSpaces(str, len) {
+    str += `<td colspan="${len}">`;
     while (str.length < len) {
       str += ' ';
     }
@@ -64,7 +65,7 @@ module.exports = (expressApp, filename) => {
     let stack = layer.stack || layer.route.stack;
     for (let i = 0; i < stack.length; i += 1) {
       if (i === stack.length - 1) {
-        indentation = `${indentation.substr(0, indentation.length - TREE_INDENT_SIZE)} └── `;
+        indentation = `${indentation.substr(0, indentation.length - 1)} └── `;
       }
       printRoutes(stack[i], indentation);
     }
@@ -74,5 +75,7 @@ module.exports = (expressApp, filename) => {
 
   printRoutes(expressApp._router, '');
 
-  return text.join('\n');
+  text = text.join('</td></tr><tr><td>');
+  text += '</td></tr></table>';
+  return text;
 };
