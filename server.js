@@ -20,7 +20,9 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     winston.info('URL', req.url);
     next();
   });
-  const controllers = fs.readdirSync(path.resolve(__dirname, 'controllers'));
+  const controllers = fs
+    .readdirSync(path.resolve(__dirname, 'controllers'))
+    .filter(file => path.parse(file).ext === '.js');
   controllers.forEach(controllerFile => {
     const short = controllerFile.toLowerCase().replace('.js', '');
     const route = '/api/' + short;
