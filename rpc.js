@@ -1,5 +1,6 @@
 // returns a promise that resolves to the result of the RPC
-const winston = require('winston');
+const logger = require('./logger.js');
+
 module.exports = function(conn, channelName, body) {
   return new Promise((resolve, reject) => {
     return conn.createChannel((err, ch) => {
@@ -27,10 +28,10 @@ module.exports = function(conn, channelName, body) {
               // check to make sure this isnt that
               if (msg) {
                 const content = JSON.parse(msg.content.toString('utf8'));
-                winston.info('received', content);
+                logger.info('received', content);
                 if (msg.properties.correlationId === corr) {
                   // this is result of the RPC;
-                  // winston.info('is a match')
+                  // winston.log('is a match')
                   ch.ack(msg);
                   resolve(content);
                   // conn.close();

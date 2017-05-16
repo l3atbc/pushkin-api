@@ -1,23 +1,24 @@
 let amqp = require('amqplib/callback_api');
+const path = require('path');
 const bodyParser = require('body-parser');
-let rpc = require('./rpc');
-const dbWrite = require('./dbWrite');
-const winston = require('winston');
 const cors = require('cors');
 const fs = require('fs');
 const app = require('express')();
-const PORT = 3000;
+let rpc = require('./rpc');
 const printer = require('./printer');
-const path = require('path');
+const logger = require('./logger.js');
+
+const dbWrite = require('./dbWrite');
+const PORT = 3000;
 
 app.use(bodyParser.json());
 app.use(cors());
 amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
   if (err) {
-    return winston.error(err);
+    return logger.error(err);
   }
   app.use((req, res, next) => {
-    winston.info('URL', req.url);
+    logger.info(req.url);
     next();
   });
   const controllers = fs
@@ -64,6 +65,7 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
   app.use((err, req, res, next) => {
     res.status(500);
     res.json({ message: err.message });
+    logger.error(err.message);
   });
   app.listen(PORT, function() {
     //Callback triggered when server is successfully listening. Hurray!
