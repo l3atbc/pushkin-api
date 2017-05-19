@@ -10,7 +10,10 @@ module.exports = function(conn, channelName, body) {
       return ch.assertQueue(
         '',
         {
-          exclusive: true
+          exclusive: true,
+          arguments: {
+            'x-expires': 3 * 60 * 1000
+          }
         },
         (err, q) => {
           if (err) {
