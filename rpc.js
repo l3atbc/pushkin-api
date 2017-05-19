@@ -39,13 +39,23 @@ module.exports = function(conn, channelName, body) {
               }
             },
             {
-              ack: true
+              ack: true,
+              exclusive: true
+            },
+            (err, ok) => {
+              if (err) {
+                return reject(err);
+              }
+              return ch.sendToQueue(
+                channelName,
+                new Buffer(JSON.stringify(body)),
+                {
+                  correlationId: corr,
+                  replyTo: q.queue
+                }
+              );
             }
           );
-          return ch.sendToQueue(channelName, new Buffer(JSON.stringify(body)), {
-            correlationId: corr,
-            replyTo: q.queue
-          });
         }
       );
     });
