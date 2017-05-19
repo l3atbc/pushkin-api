@@ -1,6 +1,5 @@
 // returns a promise that resolves to the result of the RPC
-const logger = require('./logger.js');
-
+const winston = require('./logger');
 module.exports = function(conn, channelName, body) {
   return new Promise((resolve, reject) => {
     return conn.createChannel((err, ch) => {
@@ -11,9 +10,7 @@ module.exports = function(conn, channelName, body) {
       return ch.assertQueue(
         '',
         {
-          exclusive: true,
-          autoDelete: true,
-          durable: false
+          exclusive: true
         },
         (err, q) => {
           if (err) {
@@ -28,40 +25,30 @@ module.exports = function(conn, channelName, body) {
               // check to make sure this isnt that
               if (msg) {
                 const content = JSON.parse(msg.content.toString('utf8'));
-                logger.info('received', content);
+                winston.info('received', content);
                 if (msg.properties.correlationId === corr) {
                   // this is result of the RPC;
-                  // winston.log('is a match')
-                  ch.ack(msg);
+                  // winston.info('is a match')
+                  ch.deleteQueue(q.queue);
+                  ch.close();
                   resolve(content);
                   // conn.close();
                 }
               }
             },
             {
-              ack: true,
-              exclusive: true
-            },
-            (err, ok) => {
-              if (err) {
-                return reject(err);
-              }
-              return ch.sendToQueue(
-                channelName,
-                new Buffer(JSON.stringify(body)),
-                {
-                  correlationId: corr,
-                  replyTo: q.queue
-                }
-              );
+              noAck: true
             }
           );
+          return ch.sendToQueue(channelName, new Buffer(JSON.stringify(body)), {
+            correlationId: corr,
+            replyTo: q.queue
+          });
         }
       );
     });
   });
 };
-
 function generateUuid() {
   return (
     Math.random().toString() +
