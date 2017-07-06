@@ -2,6 +2,7 @@ FROM node:latest
 MAINTAINER Robert Wilkinson
 LABEL Name=games-with-words-api Version=0.0.1 
 RUN apt-get update
+RUN apt-get install nano
 RUN apt-get install -y netcat
 COPY package.json /tmp/package.json
 RUN cd /tmp && npm install --production
