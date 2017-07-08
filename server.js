@@ -25,7 +25,7 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     .readdirSync(path.resolve(__dirname, 'controllers'))
     .filter(file => path.parse(file).ext === '.js');
   controllers.forEach(controllerFile => {
-    const short = controllerFile.toLowerCase().replace('.js', '');
+    const short = controllerFile.replace('.js', '');
     const route = '/api/' + short;
     const controller = require('./controllers/' + short)(rpc, conn, dbWrite);
     app.use(route, controller);

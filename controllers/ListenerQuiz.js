@@ -6,7 +6,7 @@ const basicAuth = require('basic-auth');
 const getFileName = () => {
   const fullPath = __filename;
   const fileName = fullPath.replace(/^.*[\\\/]/, '');
-  return fileName.replace('.js', '').toLowerCase();
+  return fileName.replace('.js', '');
 };
 
 const fileName = getFileName();
