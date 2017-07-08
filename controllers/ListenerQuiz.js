@@ -31,7 +31,7 @@ module.exports = (rpc, conn, dbWrite) => {
   const router = new express.Router();
 
   // get all questions for a quiz
-  router.post('/allStimuli', (req, res, next) => {
+  router.post('/getAllStimuli', (req, res, next) => {
     var rpcInput = {
       method: 'getAllStimuli',
       params: []
@@ -45,23 +45,38 @@ module.exports = (rpc, conn, dbWrite) => {
   });
 
   // save in db
-  router.post('/response', (req, res, next) => {
+  router.post('/stimulusResponse', (req, res, next) => {
     const user_id = req.body.user_id;
     const stimulus = req.body.stimulus;
     const data_string = req.body.data_string;
     const num_responses = parseInt(req.body.num_responses) + 1;
     const create = {
-      method: 'createResponse',
+      method: 'createStimulusResponse',
       params: [{ user_id: user_id, stimulus: stimulus, data_string: data_string }]
     };
     const update = {
-      method: 'updateStimulus',
-      params: [{stimulus: stimulus}, { num_responses: num_responses }]
+      method: 'raw',
+      params: [`UPDATE listener_stimuli SET num_responses = num_responses + 1 WHERE stimulus = '${stimulus}'`]
     };
     return dbWrite(conn, fileName + '_db_write', create)
     .then(() => {
       return dbWrite(conn, fileName + '_db_write', update);
     })
+    .then(() => {
+      res.sendStatus(200);
+    })
+    .catch(next);
+  });
+
+  // save in db
+  router.post('/response', (req, res, next) => {
+    const user_id = req.body.user_id;
+    const data_string = req.body.data_string;
+    const create = {
+      method: 'createResponse',
+      params: [{ user_id: user_id, data_string: data_string }]
+    };
+    return dbWrite(conn, fileName + '_db_write', create)
     .then(() => {
       res.sendStatus(200);
     })
