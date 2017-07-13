@@ -56,7 +56,7 @@ module.exports = (rpc, conn, dbWrite) => {
     };
     const update = {
       method: 'raw',
-      params: [`UPDATE listener_stimuli SET num_responses = num_responses + 1 WHERE stimulus = '${stimulus}'`]
+      params: [`UPDATE "listener-quiz_stimuli" SET "num_responses" = "num_responses" + 1 WHERE "stimulus" = '${stimulus}'`]
     };
     return dbWrite(conn, fileName + '_db_write', create)
     .then(() => {
