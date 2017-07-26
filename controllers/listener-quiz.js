@@ -83,33 +83,57 @@ module.exports = (rpc, conn, dbWrite) => {
     .catch(next);
   });
 
-  // get all responses in csv format for a quiz - needs work
-  router.get('/admincsv', (req, res, next) => {
-    // TODO: refactor this to be set on contruction of the controller
-    // possibly
+  // remove users with no responses after two hours - hit by cron job
+  router.post('/clean', (req, res, next) => {
     const user = basicAuth(req);
     if (!user || !user.name || !user.pass) {
       res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
       return res.sendStatus(401);
     }
     if (checkUser(user.name, user.pass)) {
-      const rpcInput = {
-        method: 'getResponseCsv',
-        params: []
+      const clean = {
+        method: 'raw',
+        params: [`DELETE FROM "listener-quiz_users" WHERE "id" NOT IN (SELECT "user_id" FROM "listener-quiz_responses" UNION SELECT "user_id" FROM "listener-quiz_stimulusResponses") AND "created_at" < NOW() - INTERVAL '2 hours'`]
       };
-      const channelName = fileName + '_rpc_worker';
-      return rpc(conn, channelName, rpcInput)
-        .then(data => {
-          res.set('Content-Type', 'text/csv');
-          res.send(data);
-        })
-        .catch(next);
-    } else {
+      return dbWrite(conn, fileName + '_db_write', clean)
+      .then(() => {
+        res.sendStatus(200);
+      })
+      .catch(next);
+    }
+    else {
       res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
-      res.sendStatus(401);
-      return;
+      return res.sendStatus(401);
     }
   });
+
+  // get all responses in csv format for a quiz - needs work
+  // router.get('/admincsv', (req, res, next) => {
+  //   // TODO: refactor this to be set on contruction of the controller
+  //   // possibly
+  //   const user = basicAuth(req);
+  //   if (!user || !user.name || !user.pass) {
+  //     res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+  //     return res.sendStatus(401);
+  //   }
+  //   if (checkUser(user.name, user.pass)) {
+  //     const rpcInput = {
+  //       method: 'getResponseCsv',
+  //       params: []
+  //     };
+  //     const channelName = fileName + '_rpc_worker';
+  //     return rpc(conn, channelName, rpcInput)
+  //       .then(data => {
+  //         res.set('Content-Type', 'text/csv');
+  //         res.send(data);
+  //       })
+  //       .catch(next);
+  //   } else {
+  //     res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+  //     res.sendStatus(401);
+  //     return;
+  //   }
+  // });
 
   return router;
 };
