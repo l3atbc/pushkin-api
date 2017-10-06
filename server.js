@@ -30,12 +30,23 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     const controller = require('./controllers/' + short)(rpc, conn, dbWrite);
     app.use(route, controller);
   });
-
+  app.get('/api/getAllForumTopic', (req, res, next) => {
+    var rpcInput = {
+      method: 'allForumTopic',
+      params: []
+    };
+    const channelName = 'forum_rpc_worker';
+    return rpc(conn, channelName, rpcInput)
+      .then(data => {
+        res.json(data);
+      })
+      .catch(next);
+  });
   app.post('/users', (req, res, next) => {
     const { user, choiceId, questionId } = req.body;
     var rpcInput = {
       method: 'createUser',
-      arguments: [{ name: 'rob' }]
+      params: [{ name: 'rob' }]
     };
     const channelName = 'db_rpc_worker';
     return rpc(conn, channelName, rpcInput)
