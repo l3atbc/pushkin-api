@@ -7,7 +7,7 @@ const app = require('express')();
 let rpc = require('./rpc');
 const printer = require('./printer');
 const logger = require('./logger.js');
-
+const CONFIG = require('./config.js');
 const dbWrite = require('./dbWrite');
 const PORT = 3000;
 
@@ -30,39 +30,10 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     const controller = require('./controllers/' + short)(rpc, conn, dbWrite);
     app.use(route, controller);
   });
-  app.get('/api/getAllForumPost', (req, res, next) => {
-    var rpcInput = {
-      method: 'allForumPost',
-      params: []
-    };
-    const channelName = 'forum_rpc_worker';
-    return rpc(conn, channelName, rpcInput)
-      .then(data => {
-        res.json(data);
-      })
-      .catch(next);
-  });
-  app.post('/api/createForumPost', (req, res, next) => {
-    var rpcInput = {
-      method: 'createForumPost',
-      params: [
-        {
-          auth0_id: req.body.auth0_id,
-          post_content: req.body.post_content,
-          stim_id: req.body.stim_id,
-          post_subject: req.body.post_subject,
-          created_at: req.body.created_at
-        }
-      ]
-    };
-    const channelName = 'forum_rpc_worker';
-    return rpc(conn, channelName, rpcInput)
-      .then(data => {
-        res.json(data);
-      })
-      .catch(next);
-  });
-
+  if (CONFIG.forum) {
+    const forumController = require('./forum')(rpc, conn, dbWrite);
+    app.use('/api', forumController);
+  }
   app.get('/api/users', (req, res, next) => {
     var rpcInput = {
       method: 'allUsers'
