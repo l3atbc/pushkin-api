@@ -8,9 +8,9 @@ let rpc = require('./rpc');
 const printer = require('./printer');
 const logger = require('./logger.js');
 const CONFIG = require('./config.js');
+const checkJWT = require('./auth.js').verify;
 const dbWrite = require('./dbWrite');
 const PORT = 3000;
-
 app.use(bodyParser.json());
 app.use(cors());
 amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
@@ -31,7 +31,7 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
     app.use(route, controller);
   });
   if (CONFIG.forum) {
-    const forumController = require('./forum')(rpc, conn, dbWrite);
+    const forumController = require('./forum')(rpc, conn, dbWrite, checkJWT);
     app.use('/api', forumController);
   }
   app.get('/api/users', (req, res, next) => {

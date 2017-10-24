@@ -1,7 +1,7 @@
 const express = require('express');
 const channelName = 'forum_rpc_worker';
 
-module.exports = (rpc, conn, dbwrite) => {
+module.exports = (rpc, conn, dbwrite, checkJWT) => {
   const router = new express.Router();
   router.get('/getAllForumPost', (req, res, next) => {
     var rpcInput = {
@@ -15,7 +15,7 @@ module.exports = (rpc, conn, dbwrite) => {
       .catch(next);
   });
 
-  router.post('/createForumPost', (req, res, next) => {
+  router.post('/createForumPost', checkJWT, (req, res, next) => {
     var rpcInput = {
       method: 'createForumPost',
       params: [
