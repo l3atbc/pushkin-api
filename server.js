@@ -9,8 +9,9 @@ const printer = require('./printer');
 const logger = require('./logger.js');
 const CONFIG = require('./config.js');
 const dbWrite = require('./dbWrite');
-const PORT = 3000;
+require('dotenv').config();
 
+const PORT = 3000;
 app.use(bodyParser.json());
 app.use(cors());
 amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
@@ -33,6 +34,10 @@ amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
   if (CONFIG.forum) {
     const forumController = require('./forum')(rpc, conn, dbWrite);
     app.use('/api', forumController);
+  }
+  if (CONFIG.auth) {
+    const authController = require('./auth')();
+    app.use('/api', authController);
   }
   app.get('/api/users', (req, res, next) => {
     var rpcInput = {
