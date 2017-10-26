@@ -11,7 +11,7 @@ const CONFIG = require('./config.js');
 const dbWrite = require('./dbWrite');
 require('dotenv').config();
 
-const PORT = 3000;
+const PORT = process.env.PORT;
 app.use(bodyParser.json());
 app.use(cors());
 amqp.connect(process.env.AMPQ_ADDRESS, function(err, conn) {
