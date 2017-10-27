@@ -15,10 +15,10 @@ module.exports = (rpc, conn, dbwrite) => {
       })
       .catch(next);
   });
-  router.post('/getForumPost', (req, res, next) => {
+  router.get('/forumPosts', (req, res, next) => {
     var rpcInput = {
       method: 'findForumPost',
-      params: [req.body.id]
+      params: [req.query.id]
     };
     return rpc(conn, channelName, rpcInput)
       .then(data => {
@@ -28,7 +28,7 @@ module.exports = (rpc, conn, dbwrite) => {
   });
   if (CONFIG.auth) {
     const checkJWT = require('./authMiddleware').verify;
-    router.post('/createForumPost', checkJWT, (req, res, next) => {
+    router.post('/forumPosts', checkJWT, (req, res, next) => {
       var rpcInput = {
         method: 'createForumPost',
         params: [
