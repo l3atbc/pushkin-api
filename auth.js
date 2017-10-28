@@ -4,9 +4,9 @@ require('dotenv').config();
 
 module.exports = () => {
   const router = new express.Router();
-  router.get('/getAuth0User', (req, res, next) => {
+  router.get('/getAuth0User/:id', (req, res, next) => {
     const options = {
-      url: `https://gww.auth0.com/api/v2/users/${req.query.auth0_id}`,
+      url: `https://gww.auth0.com/api/v2/users/${req.params.id}`,
       method: 'GET',
       headers: {
         Authorization: 'Bearer ' + process.env.SECRET

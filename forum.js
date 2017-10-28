@@ -15,10 +15,10 @@ module.exports = (rpc, conn, dbwrite) => {
       })
       .catch(next);
   });
-  router.get('/forumPosts', (req, res, next) => {
+  router.get('/forumPosts/:id', (req, res, next) => {
     var rpcInput = {
       method: 'findForumPost',
-      params: [req.query.id]
+      params: [req.params.id]
     };
     return rpc(conn, channelName, rpcInput)
       .then(data => {
