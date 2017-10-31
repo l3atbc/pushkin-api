@@ -47,6 +47,24 @@ module.exports = (rpc, conn, dbwrite) => {
         })
         .catch(next);
     });
+    router.post('/forumComments', checkJWT, (req, res, next) => {
+      var rpcInput = {
+        method: 'createForumComment',
+        params: [
+          {
+            auth0_id: req.body.auth0_id,
+            responses: req.body.responses,
+            created_at: req.body.created_at,
+            post_id: req.body.post_ids
+          }
+        ]
+      };
+      return rpc(conn, channelName, rpcInput)
+        .then(data => {
+          res.json(data);
+        })
+        .catch(next);
+    });
   }
   return router;
 };
