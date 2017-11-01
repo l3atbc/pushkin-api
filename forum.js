@@ -4,9 +4,9 @@ const CONFIG = require('./config.js');
 
 module.exports = (rpc, conn, dbwrite) => {
   const router = new express.Router();
-  router.get('/getAllForumPost', (req, res, next) => {
+  router.get('/forumPosts', (req, res, next) => {
     var rpcInput = {
-      method: 'allForumPost',
+      method: 'allForumPosts',
       params: []
     };
     return rpc(conn, channelName, rpcInput)
@@ -18,7 +18,7 @@ module.exports = (rpc, conn, dbwrite) => {
   router.get('/forumPosts/:id', (req, res, next) => {
     var rpcInput = {
       method: 'findForumPost',
-      params: [req.params.id]
+      params: [req.params.id, ['forumComments']]
     };
     return rpc(conn, channelName, rpcInput)
       .then(data => {
