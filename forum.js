@@ -15,6 +15,43 @@ module.exports = (rpc, conn, dbwrite) => {
       })
       .catch(next);
   });
+  router.get('/userForumPosts/:auth0Id', (req, res, next) => {
+    var postRpcInput = {
+      method: 'queryForumPost',
+      params: [[['where', 'auth0_id', '=', req.params.auth0Id]]]
+    };
+    var commentRpcInput = {
+      method: 'queryForumComment',
+      params: [[['where', 'auth0_id', '=', req.params.auth0Id]]]
+    };
+    return rpc(conn, channelName, postRpcInput)
+      .then(posts => {
+        return rpc(conn, channelName, commentRpcInput).then(comments => {
+          const postIds = posts.map(post => {
+            return post.id;
+          });
+          const commentPostIds = comments
+            .map(comment => {
+              return comment.post_id;
+            })
+            .filter(Boolean);
+          const combine = [...postIds, ...commentPostIds]
+            .filter((id, index, self) => {
+              return index === self.indexOf(id);
+            })
+            .sort();
+          const combineRpcInput = {
+            method: 'queryForumPost',
+            params: [[['where', 'id', 'in', combine]]]
+          };
+          return rpc(conn, channelName, postRpcInput).then(data => {
+            res.json(data);
+          });
+        });
+        res.json(data);
+      })
+      .catch(next);
+  });
   router.get('/forumPosts/:id', (req, res, next) => {
     var rpcInput = {
       method: 'findForumPost',
