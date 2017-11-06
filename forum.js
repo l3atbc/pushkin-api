@@ -72,7 +72,8 @@ module.exports = (rpc, conn, dbwrite) => {
           {
             auth0_id: req.body.auth0_id,
             post_content: req.body.post_content,
-            stim_id: req.body.stim_id,
+            stim: req.body.stim,
+            quiz: req.body.quiz,
             post_subject: req.body.post_subject,
             created_at: req.body.created_at
           }
